@@ -3,14 +3,17 @@ home
 addpath('../');
 
 % number of model runs
-nM = 100;
+nM = 1500;
 
+% define color map
 cmap = colorcet('L17','n',25);
-colormap(cmap(2:end-1,:))
-shapes = ["cosinusoidal","bump","composite"];
-% shapes = "cosinusoidal";
-rmses            = NaN(numel(shapes),1);
+colormap(cmap(2:end-1,:));
 
+% iterate through the following domain shape types
+shapes = ["cosinusoidal","bump","composite"];
+
+% intialize waitbar & RMSE-vector; define figure labeling
+rmses     = NaN(numel(shapes),1);
 alphabet  = 'abcdefghijklmnopqrstuvwxyz';
 f = waitbar(0,'Please be patient.','Name','Running simulations...');
 
@@ -27,6 +30,7 @@ wMin      = repmat(hSet.wMin,2,1);
 Q0        = repmat(hSet.Q0,2,1);
 qNorth    = [0*hSet.qNorth; hSet.qNorth];
 
+% initialize figure
 pltW                    = 17;
 pltH                    = 5;
 fig                     = figure(1);
@@ -41,16 +45,18 @@ t.Padding               = 'compact';
 fig.Color               = 'White';
 set(fig,'DefaultAxesFontSize',12,'DefaultAxesFontName','Crimson Text');
 
+% iterate through the shapes
 for iS = 1:numel(shapes)
+  shape = shapes(iS);
+  
   % pre-allocate some outputs
   Qex     = NaN(numel(L),1);
   Aex     = NaN(numel(L),1);
   Atot    = NaN(numel(L),1);
   AL2     = NaN(numel(L),1);
-
+    
+  % iterate through all realizations of Halton set
   for i = 1:numel(L)
-    shape = shapes(iS);
-
     mdl = fpAna('h1',h1(i),'h2',h2(i),'L',L(i),'wMin',wMin(i),...
       'wMax',wMax(i),'Tx',Tx(i),'Ty',Ty(i),...
       'qNorth',qNorth(i),'shape',shape,'autoSolve',false);
@@ -68,23 +74,21 @@ for iS = 1:numel(shapes)
       end
     catch
     end
+    
+    % show progress with waitbar
     waitbar(((iS-1).*nM+i)/(numel(shapes).*nM),f)
   end
 
+  % evaluate area
   Abump   = Atot-wMin.*L;
   QexNorm = Qex./Q0;
   QNstar  = abs(qNorth./Q0.*L);
   
+  % append new subplot/tile
   nexttile()
-%   x = sqrt(Tx./Ty).*Atot./AL2;
-  %   y = sqrt(Kx./Ky).*Atot./AL2;
-  %   z = Aex./(wMax-wMin)./L;
-  y = Aex./Abump;
-  x = QexNorm./(sqrt(1+QNstar));
-  
-  scatter(x,y,35,QNstar,'filled')
-  
-  rmses(iS) = sqrt(mean((y-x).^2));
+  y   = Aex./Abump;
+  x   = QexNorm./(sqrt(1+QNstar));
+  sc  = scatter(x,y,35,QNstar,'filled');
   
   xlabel('$\tilde{Q}_\mathrm{ex}/\sqrt{1+|\tilde{Q}_\mathrm{north}|}$','Interpreter','LaTeX');
   ytickformat('%.1f')
@@ -99,21 +103,24 @@ for iS = 1:numel(shapes)
   axis equal
   xlim([0 1]);
   ylim([0 1]);
-%   pbaspect([1 1 1]);
   
   title(sprintf('{\\bf%s}: %s',alphabet(iS),shapes(iS)),...
         'FontName','Helvetica','FontWeight','Normal','FontSize',10)
   caxis([0 QNmax])
   set(gca,'Color',[0.85 0.85 0.85])
   
-
+  % determine RSME
+  rmses(iS) = sqrt(mean((y-x).^2));
 end
+
 % the following line uses an ugly trick (empty second line) to get spacing
 % right; cause of problem is "axis equal" with "tiledlayout"
 ylabel(t,{'$\tilde{A}$' ''},'Interpreter','LaTeX','FontSize',12);
 
+% close the waitbar
 close(f)
 
+% perform some final enhancements
 cb = colorbar('FontSize',12);
 cb.Layout.Tile = 'east';
 cb.Ticks = 0:1:QNmax;
@@ -130,4 +137,6 @@ ax.YColor = 'white';
 t.Padding = 'loose';
 t.Padding = 'tight';
 t.TileSpacing = 'compact';
+
+% export the result
 exportgraphics(fig,"./figArea.pdf",'ContentType','vector')

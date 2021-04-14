@@ -102,8 +102,6 @@ classdef fpSimple < matlab.mixin.SetGet & matlab.mixin.CustomDisplay
     function obj = fpSimple()
       % This is the constructor of the fpSimple class. It can only be
       % called implicitly by subclasses.
-      thisPlace = fileparts(mfilename('fullpath'));        
-      addpath(fullfile(thisPlace,'helpers'));
       
       % Make sure that a recent version of Matlab is used.
       if verLessThan('matlab','9.10.0.1538726')

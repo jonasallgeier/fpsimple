@@ -47,7 +47,7 @@ exA         = fpAna;
 exA.L       = 3000;
 exA.wMax    = 600;
 exA.wMin    = 175;
-exA.h2      = 349; % 9
+exA.h2      = 349;
 exA.h1      = 341;
 exA.Tx      = 5e-5;
 exA.Ty      = 5e-5;
@@ -188,4 +188,3 @@ exportgraphics(fig,tempFig,'BackgroundColor','none','ContentType','vector')
 
 % use systems pdftk to overlap with existing vector map
 system(sprintf('pdftk %s background %s output %s',tempFig,mapVec,saveTo));
-% exportgraphics(fig,"../tex/figExample.pdf",'BackgroundColor','none','ContentType','vector')

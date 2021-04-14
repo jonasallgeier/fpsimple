@@ -3,7 +3,7 @@ clearvars
 home
 addpath('../');
 
-% parameters
+% define parameters for example models
 h1      = 10;
 h2      = 7;
 qNorth  = -0.0/seconds(years(1));
@@ -12,14 +12,15 @@ L       = 1000;
 K       = 1e-4;
 wMax    = wMin.*1.6;
 
+% define arrow positions
 x = linspace(0,L,21);
 y = 0*x;
 
+% initialize the figure
 pltW = 17;
 pltH = 7;
-
 fig = figure(1);
-clf
+fig = clf(fig);
 fig.Units       = "centimeters";
 fig.PaperUnits  = "centimeters";
 fig.PaperSize   = [pltW,pltH];
@@ -27,35 +28,37 @@ fig.Position    = [0,0,pltW,pltH];
 t = tiledlayout('flow');
 t.TileSpacing = 'tight';
 t.Padding = 'tight';
-
-shapes = ["bump", "composite", "cosinusoidal", "cosinusoidal"];
 alphabet = 'abcdefghijklmnopqrstuvwxyz';
 
-
+% iterate through shape types
+shapes = ["bump", "composite", "cosinusoidal", "cosinusoidal"];
 for i = 1:numel(shapes)
+  % define the model
   mdl = fpAna('h1',h1,'h2',h2,'L',L,'wMin',wMin,...
                 'wMax',wMax,'Tx',K,'Ty',K,...
                 'qNorth',qNorth,'shape',"bump",'autoSolve',true);
-  nexttile()
   mdl.shape = shapes(i);
+  
+  % in the last case: add a northern influx
   if i == numel(shapes)
     mdl.qNorth = -1e-8;
   end
-  plot(mdl)
+  
+  % plot the model
+  nexttile()
+  mdl.plot('outline',true,'divide',false)
+  hold on
+  
+  % adjust line widths
   mdl.stor.go(1).LineWidth = 1.5;
   mdl.stor.go(3).LineWidth = 1.5;
-  
-  hold on
-  % nexttile()
-  sc = 0.33*mdl.wMax*mdl.qy(x,y)./max(abs(mdl.qy(x,y)));
-
-  mdl.plot('outline',true,'divide',false)
   
   % plot exchange zone/hillslope zone as area
   pS = isolines(mdl,mdl.psi(0,0),'type',"psi");
   pgon = polyshape(pS.x,pS.y);
   plot(pgon,'FaceColor',[105 186 201]/255,'FaceAlpha',0.4,'EdgeAlpha',0);
   
+  % if there is northern influx: show the area
   if mdl.qNorth~=0
     pS1 = isolines(mdl,mdl.psi(0,mdl.wMin),'type',"psi");
     pS2x = flip(linspace(0,mdl.L,100)');
@@ -63,13 +66,16 @@ for i = 1:numel(shapes)
     pgon2 = polyshape([pS1.x;pS2x],[pS1.y;pS2y],'simplify',false);
     plot(pgon2,'FaceColor',[201 174 105]/255,'FaceAlpha',0.4,'EdgeAlpha',0);
   else
-    pgon2 = polyshape([NaN;NaN;NaN],[NaN;NaN;NaN],'simplify',false);
-    plot(pgon2,'FaceColor',[201 174 105]/255,'FaceAlpha',0.4,'EdgeAlpha',0);
+    % add dummy plot to comply with graphics object order
+    plot(NaN,NaN);
   end
   
+  % set ylim to be able to show arrows
   ylim([-0.33*mdl.wMax mdl.wMax])
   axis off
   
+  % add arrows
+  sc = 0.33*mdl.wMax*mdl.qy(x,y)./max(abs(mdl.qy(x,y))); % <-- scaling
   sz = 5*abs(sc)./max(abs(sc));
   for ii = 1:numel(x)
     xAr = [x(ii) x(ii)];
@@ -90,21 +96,20 @@ for i = 1:numel(shapes)
 
   % change order such that arrows are not on top
   h = get(gca,'Children');
-  % boundary
-  % arrows
-  % contourH
-  % polygons
-  % contourPsi
+    % boundary
+    % arrows
+    % contourH
+    % polygons
+    % contourPsi
   h = [h(end-3); h(1:end-6); h(end-1); h(end-4); h(end-5); h(end); h(end-2);];
   set(gca,'Children',h);
 
-%   title(alphabet(i),'Position',[0 mdl.wMin+0.5*(mdl.wMax-mdl.wMin)])
-  
+  % add a title
   title(sprintf('{\\bf%s}: %s',alphabet(i),shapes(i)),...
       'FontName','Helvetica','FontWeight','Normal','FontSize',10)
-% title('this text is {\bfbold} this text is {\ititalizized}','FontWeight','Normal')
 end
-% 
+
+% add dummy axis to make exportgraphics use the full size
 ax              = axes;
 ax.Position     = [0,0,1,1];
 ax.Color        = 'None';
@@ -113,4 +118,5 @@ ax.XColor       = 'white';
 ax.YTick        = [0 1];
 ax.YColor       = 'white';
 
+% export the figure
 exportgraphics(fig,"./figFlowNetExamples.pdf",'ContentType','vector')
