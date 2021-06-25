@@ -232,3 +232,6 @@ filedata = filedata.replace('+DATE+',date.today().strftime("%Y-%m-%d"))
 # write to html file
 with open('index.html', 'w') as file:
   file.write(filedata)
+
+# to make things go live on github io (because this does not live in the root directory):
+# git subtree push --prefix python origin gh-pages
