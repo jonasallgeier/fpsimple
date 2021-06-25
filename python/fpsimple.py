@@ -230,5 +230,5 @@ filedata = filedata.replace('+RIGHT+', div2)
 filedata = filedata.replace('+DATE+',date.today().strftime("%Y-%m-%d"))
 
 # write to html file
-with open('fpsimple.html', 'w') as file:
+with open('index.html', 'w') as file:
   file.write(filedata)
