@@ -1,4 +1,4 @@
-function out = getHaltonSet(nM,opts)
+function [out,p] = getHaltonSet(nM,opts)
   % get a halton set of requested size and within requested parameter
   % bounds
   arguments
@@ -27,22 +27,22 @@ function out = getHaltonSet(nM,opts)
   
   % rescale the sequence to obtain primary parameters
   % ambI | Kmean | anisotropy ratio | L | wMin/wMax | wMax/L | R (maybe in terms of Kmean?)
-  I       =      I(1)+ (I(2)-I(1)).*P(1:nM,1);
-  Tmean   = exp( T(1)+ (T(2)-T(1)).*P(1:nM,2) );
-  aniso   = exp( a(1)+ (a(2)-a(1)).*P(1:nM,3) );
-  L       =      L(1)+ (L(2)-L(1)).*P(1:nM,4);
-  ratMin  =      r(1)+ (r(2)-r(1)).*P(1:nM,5);
-  ratMax  =      R(1)+ (R(2)-R(1)).*P(1:nM,6);
-  QNstar  =      q(1)+ (q(2)-q(1)).*P(1:nM,7);
+  p.I       =      I(1)+ (I(2)-I(1)).*P(1:nM,1);
+  p.Tmean   = exp( T(1)+ (T(2)-T(1)).*P(1:nM,2) );
+  p.aniso   = exp( a(1)+ (a(2)-a(1)).*P(1:nM,3) );
+  p.L       =      L(1)+ (L(2)-L(1)).*P(1:nM,4);
+  p.ratMin  =      r(1)+ (r(2)-r(1)).*P(1:nM,5);
+  p.ratMax  =      R(1)+ (R(2)-R(1)).*P(1:nM,6);
+  p.QNstar  =      q(1)+ (q(2)-q(1)).*P(1:nM,7);
   
   % transform to get real input parameters
-  out.L       = L;                        % domain length
-  out.h1      = I.*L;                     % first fixed head
+  out.L       = p.L;                        % domain length
+  out.h1      = p.I.*p.L;                     % first fixed head
   out.h2      = 0.*out.h1;                % second fixed head
-  out.Tx      = sqrt(Tmean.^2.*aniso);    % transmissivity in x
-  out.Ty      = sqrt(Tmean.^2./aniso);    % transmissivity in y
-  out.wMax    = ratMax.*L;                % maximum width
-  out.wMin    = ratMin.*out.wMax;         % minimum width
-  out.Q0      = (out.h1-out.h2)./L.*out.Tx.*(out.wMax-out.wMin); % normalization discharge
-  out.qNorth  = QNstar.*out.Q0./L;        % northern influx (L³/L/T)
+  out.Tx      = sqrt(p.Tmean.^2.*p.aniso);    % transmissivity in x
+  out.Ty      = sqrt(p.Tmean.^2./p.aniso);    % transmissivity in y
+  out.wMax    = p.ratMax.*p.L;                % maximum width
+  out.wMin    = p.ratMin.*out.wMax;         % minimum width
+  out.Q0      = (out.h1-out.h2)./p.L.*out.Tx.*(out.wMax-out.wMin); % normalization discharge
+  out.qNorth  = p.QNstar.*out.Q0./p.L;        % northern influx (L³/L/T)
 end
